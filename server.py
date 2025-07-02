@@ -137,11 +137,7 @@ def purchasePlaces():
 
 
 @app.route('/pointsDisplay')
-def pointsDisplay():
-    if 'club_email' not in session:
-        flash("You need to be logged in to view club points.")
-        return redirect(url_for('index'))
-        
+def pointsDisplay():      
     sorted_clubs = sorted(clubs, key=lambda c: int(c['points']), reverse=True)
     return render_template('points.html', clubs=sorted_clubs)
 
