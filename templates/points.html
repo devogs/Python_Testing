@@ -1,0 +1,33 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points Display Board | GUDLFT Registration</title>
+</head>
+<body>
+    <h2>Club Points Leaderboard</h2>
+    <p><a href="{{url_for('index')}}">Back to Dashboard</a></p>
+
+    {% if clubs %}
+        <table border="1" style="width:50%; text-align: left;">
+            <thead>
+                <tr>
+                    <th>Club Name</th>
+                    <th>Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for club_item in clubs %}
+                <tr>
+                    <td>{{ club_item['name'] }}</td>
+                    <td>{{ club_item['points'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No clubs found to display points.</p>
+    {% endif %}
+
+</body>
+</html>
