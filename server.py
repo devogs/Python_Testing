@@ -1,5 +1,5 @@
 import json
-from flask import Flask,render_template,request,redirect,flash,url_for
+from flask import Flask,render_template,request,redirect,flash,url_for,session
 from datetime import datetime
 
 
@@ -28,53 +28,90 @@ app.secret_key = 'something_special'
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+
 @app.route('/')
 def index():
+    if 'club_email' in session:
+        club_email = session['club_email']
+        found_clubs = [c for c in clubs if c['email'] == club_email]
+        if found_clubs:
+            club = found_clubs[0]
+            return render_template('welcome.html', club=club, competitions=competitions,
+                                   current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        else:
+            session.pop('club_email', None)
+            flash("Your club's email was not found. Please log in again.")
+            return render_template('index.html')
     return render_template('index.html')
+
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
-    found_clubs = [club for club in clubs if club['email'] == request.form['email']]
+    user_email = request.form['email']
+    found_clubs = [club for club in clubs if club['email'] == user_email]
 
     if found_clubs:
         club = found_clubs[0]
-        return render_template('welcome.html',club=club,competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        session['club_email'] = club['email']
+        return render_template('welcome.html',club=club,competitions=competitions,
+                               current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     else:
         flash("Sorry, that email was not found.")
+        session.pop('club_email', None)
         return redirect(url_for('index'))
 
 
-@app.route('/book/<competition>/<club>')
-def book(competition,club):
-    foundClub = [c for c in clubs if c['name'] == club][0]
-    foundCompetition = [c for c in competitions if c['name'] == competition][0]
+@app.route('/book/<competition_name>/<club_name>')
+def book(competition_name,club_name):
+    if 'club_email' not in session:
+        flash("You need to be logged in to book places.")
+        return redirect(url_for('index'))
     
+    logged_in_club_email = session['club_email']
+    foundClub = [c for c in clubs if c['email'] == logged_in_club_email][0]
+
+    foundCompetition = [c for c in competitions if c['name'] == competition_name][0]
+    
+    if foundClub['name'] != club_name:
+        flash("Attempted to book for a different club. Action blocked.")
+        return redirect(url_for('index'))
+
     competition_date = datetime.strptime(foundCompetition['date'], '%Y-%m-%d %H:%M:%S')
     if competition_date < datetime.now():
         flash("This competition has already passed. Booking is not allowed.")
-        return render_template('welcome.html', club=foundClub, competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return redirect(url_for('index'))
     
     if foundClub and foundCompetition:
         return render_template('booking.html',club=foundClub,competition=foundCompetition)
     else:
         flash("Something went wrong-please try again")
-        return render_template('welcome.html', club=foundClub, competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return redirect(url_for('index'))
 
 
 @app.route('/purchasePlaces',methods=['POST'])
 def purchasePlaces():
+    if 'club_email' not in session:
+        flash("You need to be logged in to purchase places.")
+        return redirect(url_for('index'))
+
+    logged_in_club_email = session['club_email']
+    club = [c for c in clubs if c['email'] == logged_in_club_email][0]
+
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
-    club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
+
+    if club['name'] != request.form['club']:
+        flash("Attempted to purchase for a different club. Action blocked.")
+        return redirect(url_for('index'))
 
     competition_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
     if competition_date < datetime.now():
         flash("Booking for past competitions is not allowed.")
-        return render_template('welcome.html', club=club, competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return redirect(url_for('index'))
 
     if placesRequired > 12:
         flash("You cannot book more than 12 places per competition.")
-        return render_template('welcome.html', club=club, competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return redirect(url_for('index'))
 
     if int(club['points']) >= placesRequired:
         if int(competition['numberOfPlaces']) >= placesRequired:
@@ -90,12 +127,21 @@ def purchasePlaces():
     else:
         flash(f"You do not have enough points to book {placesRequired} places. You currently have {club['points']} points.")
     
-    return render_template('welcome.html', club=club, competitions=competitions, current_date_str=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    return redirect(url_for('index'))
 
 
-# TODO: Add route for points display
+@app.route('/pointsDisplay')
+def pointsDisplay():
+    if 'club_email' not in session:
+        flash("You need to be logged in to view club points.")
+        return redirect(url_for('index'))
+        
+    sorted_clubs = sorted(clubs, key=lambda c: int(c['points']), reverse=True)
+    return render_template('points.html', clubs=sorted_clubs)
 
 
 @app.route('/logout')
 def logout():
+    session.pop('club_email', None)
+    flash("You have been logged out.")
     return redirect(url_for('index'))
