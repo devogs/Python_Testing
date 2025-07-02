@@ -113,8 +113,11 @@ def purchasePlaces():
         flash("You cannot book more than 12 places per competition.")
         return redirect(url_for('index'))
 
+    # --- BUG Fix: Prevent overbooking and incorrect point deduction ---
+    # Check if club has enough points AND if competition has enough places
     if int(club['points']) >= placesRequired:
         if int(competition['numberOfPlaces']) >= placesRequired:
+            # ONLY proceed with updates if both conditions are met
             competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
             club['points'] = str(int(club['points']) - placesRequired)
 
@@ -123,9 +126,12 @@ def purchasePlaces():
 
             flash('Great-booking complete!')
         else:
+            # Not enough places available in competition
             flash(f"Not enough places available in this competition. Only {competition['numberOfPlaces']} places left.")
     else:
+        # Not enough points for the club
         flash(f"You do not have enough points to book {placesRequired} places. You currently have {club['points']} points.")
+    # ------------------------------------------------------------------
     
     return redirect(url_for('index'))
 
