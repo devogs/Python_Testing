@@ -56,6 +56,11 @@ def purchasePlaces():
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     placesRequired = int(request.form['places'])
 
+    # FIX for Bug 3: Block bookings over 12 places
+    if placesRequired > 12:
+        flash("You cannot book more than 12 places per competition.")
+        return redirect(url_for('book', competition=competition['name'], club=club['name']))
+
     # Check if club has enough points
     if int(club['points']) < placesRequired:
         flash(f"You do not have enough points to book {placesRequired} places. You currently have {club['points']} points.")
