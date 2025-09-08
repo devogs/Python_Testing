@@ -48,3 +48,19 @@ def test_purchase_with_sufficient_points_and_places_without_save(client):
                 # Verify that the points and places were updated in the mock data
                 assert mock_clubs[0]['points'] == '5'
                 assert mock_competitions[0]['numberOfPlaces'] == 15
+
+
+def test_purchase_more_than_max_places(client):
+    """Test that a club cannot book more than 12 places per competition."""
+    with patch('server.clubs', [{'name': 'Test Club', 'email': 'test@test.com', 'points': '20'}]):
+        with patch('server.competitions', [{'name': 'Test Competition', 'numberOfPlaces': '20'}]):
+            with patch('server.flash') as mock_flash:
+                response = client.post('/purchasePlaces', data={
+                    'club': 'Test Club',
+                    'competition': 'Test Competition',
+                    'places': '13'
+                }, follow_redirects=False)
+
+                mock_flash.assert_called_once_with("You cannot book more than 12 places per competition.")
+                assert response.status_code == 302
+                assert response.location == '/book/Test%20Competition/Test%20Club'
