@@ -1,77 +1,123 @@
-gudlift-registration
+# Gudlift Registration
 
-    Why
+## Why
+This is a proof of concept (POC) project to show a light-weight version of our competition booking platform. The aim is to keep things as light as possible, and use feedback from the users to iterate.
 
-    This is a proof of concept (POC) project to show a light-weight version of our competition booking platform. The aim is the keep things as light as possible, and use feedback from the users to iterate.
+---
 
-    Getting Started
+## Getting Started
 
-    This project uses the following technologies:
+This project uses the following technologies:
+- **Python v3.x+**
+- **Flask**
 
-        Python v3.x+
+Whereas Django does a lot of things for us out of the box, Flask allows us to add only what we need.
 
-        Flask
+---
 
-        Whereas Django does a lot of things for us out of the box, Flask allows us to add only what we need.
+## Virtual Environment
 
-        Virtual environment
+Using a virtual environment ensures you'll be able to install the correct packages without interfering with Python on your machine. Before you begin, please ensure you have this installed globally.
 
-        This ensures you'll be able to install the correct packages without interfering with Python on your machine.
+---
 
-        Before you begin, please ensure you have this installed globally.
+## Installation
 
-    Installation
+1. Clone the repository and change into the directory.
 
-        After cloning, change into the directory and type virtualenv .. This will then set up a a virtual python environment within that directory.
+2. Set up a virtual environment:
+   ```bash
+   virtualenv .
+   ```
 
-        Next, type source bin/activate. You should see that your command prompt has changed to the name of the folder. This means that you can install packages in here without affecting affecting files outside. To deactivate, type deactivate
+3. Activate the environment:
+   ```bash
+   source bin/activate
+   ```
+   You should see that your command prompt has changed to the name of the folder. This means that you can install packages here without affecting files outside.  
+   To deactivate:
+   ```bash
+   deactivate
+   ```
 
-        Rather than hunting around for the packages you need, you can install in one step. Type pip install -r requirements.txt. This will install all the packages listed in the respective file. If you install a package, make sure others know by updating the requirements.txt file. An easy way to do this is pip freeze > requirements.txt
+4. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-        Setting the Flask Environment: Before running the application, you need to tell Flask which file to use.
+5. If you install a package, make sure others know by updating the `requirements.txt` file:
+   ```bash
+   pip freeze > requirements.txt
+   ```
 
-    export FLASK_APP=server.py
+---
 
-        You should now be ready to test the application. In the directory, type either flask run or python -m flask run. The app should respond with an address you should be able to go to using your browser.
+## Setting the Flask Environment
 
-    Current Setup
+Before running the application, tell Flask which file to use:
+```bash
+export FLASK_APP=server.py
+```
 
-    The app is powered by JSON files. This is to get around having a DB until we actually need one. The main ones are:
+Now you are ready to test the application. In the directory, type either:
+```bash
+flask run
+```
+or
+```bash
+python -m flask run
+```
 
-        competitions.json - list of competitions
+The app should respond with an address that you can open in your browser.
 
-        clubs.json - list of clubs with relevant information. You can look here to see what email addresses the app will accept for login.
+---
 
-    Testing
+## Current Setup
 
-    You are free to use whatever testing framework you like-the main thing is that you can show what tests you are using.
+The app is powered by **JSON files**. This avoids using a database until we actually need one. The main files are:
+- `competitions.json` – list of competitions
+- `clubs.json` – list of clubs with relevant information
 
-    We also like to show how well we're testing, so there's a module called
-    coverage you should add to your project.
-    Code Coverage
+You can check `clubs.json` to see what email addresses the app will accept for login.
 
-    To measure code coverage, you can use the coverage.py tool with pytest.
+---
 
-        Run the tests and collect data:
+## Testing
 
-    coverage run -m pytest
+You are free to use whatever testing framework you like—the main thing is to demonstrate what tests you are using.
 
-        Generate a report:
+We also encourage showing **how well the app is tested**, so you should add the `coverage` module to your project.
 
-            In the terminal: For a quick summary.
+---
 
-        coverage report
+## Code Coverage
 
-            As an HTML report: For a detailed, line-by-line view.
+To measure code coverage, use **coverage.py** with **pytest**.
 
-        coverage html
+Run the tests and collect data:
+```bash
+coverage run -m pytest
+```
 
-    Performance Testing
+Generate a report:
+- Quick summary:
+  ```bash
+  coverage report
+  ```
+- Detailed, line-by-line HTML report:
+  ```bash
+  coverage html
+  ```
 
-    To run load tests and measure the application's performance, we use Locust.
+---
 
-        Start Locust: Make sure your Flask application is running in another terminal.
+## Performance Testing
 
-    locust -f locustfile.py
+We use **Locust** to run load tests and measure the application's performance.
 
-        View the report: Open your browser and navigate to http://localhost:8089 to access the Locust web UI.
+1. Make sure your Flask application is running in another terminal.
+2. Start Locust:
+   ```bash
+   locust -f locustfile.py
+   ```
+3. Open your browser and go to [http://localhost:8089](http://localhost:8089) to access the Locust web UI.
