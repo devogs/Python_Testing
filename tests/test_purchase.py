@@ -109,3 +109,19 @@ def test_no_saving_on_failed_purchase(mock_save_competitions, mock_save_clubs, c
 
     mock_save_clubs.assert_not_called()
     mock_save_competitions.assert_not_called()
+
+
+def test_purchase_more_places_than_available(client):
+    """Test that a club cannot book more places than are available in a competition."""
+    with patch('server.clubs', [{'name': 'Test Club', 'email': 'test@test.com', 'points': '20'}]):
+        with patch('server.competitions', [{'name': 'Test Competition', 'numberOfPlaces': '5', 'date': '2025-12-31 09:00:00'}]):
+            with patch('server.flash') as mock_flash:
+                response = client.post('/purchasePlaces', data={
+                    'club': 'Test Club',
+                    'competition': 'Test Competition',
+                    'places': '6'
+                }, follow_redirects=False)
+
+                mock_flash.assert_called_once_with("Not enough places available in this competition. Only 5 places left.")
+                assert response.status_code == 302
+                assert response.location == '/book/Test%20Competition/Test%20Club'
