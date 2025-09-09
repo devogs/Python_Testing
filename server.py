@@ -8,7 +8,6 @@ def loadClubs():
          listOfClubs = json.load(c)['clubs']
          return listOfClubs
 
-
 def loadCompetitions():
     with open('competitions.json') as comps:
          listOfCompetitions = json.load(comps)['competitions']
@@ -34,18 +33,31 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/showSummary',methods=['POST'])
+@app.route('/showSummary',methods=['GET', 'POST'])
 def showSummary():
-    found_clubs = [club for club in clubs if club['email'] == request.form['email']]
-
-    if found_clubs:
-        club = found_clubs[0]
-        session['club_email'] = club['email']
-        return render_template('welcome.html',club=club,competitions=competitions)
-    else:
-        flash("Sorry, that email was not found.")
-        session.pop('club_email', None)
-        return redirect(url_for('index'))
+    if request.method == 'POST':
+        found_clubs = [club for club in clubs if club['email'] == request.form['email']]
+        if found_clubs:
+            club = found_clubs[0]
+            session['club_email'] = club['email']
+            return render_template('welcome.html',club=club,competitions=competitions)
+        else:
+            flash("Sorry, that email was not found.")
+            session.pop('club_email', None)
+            return redirect(url_for('index'))
+    
+    elif 'club_email' in session:
+        club_email = session['club_email']
+        found_clubs = [c for c in clubs if c['email'] == club_email]
+        if found_clubs:
+            club = found_clubs[0]
+            return render_template('welcome.html', club=club, competitions=competitions)
+        else:
+            session.pop('club_email', None)
+            flash("Your club's data was not found. Please log in again.")
+            return redirect(url_for('index'))
+    
+    return redirect(url_for('index'))
 
 
 @app.route('/book/<competition>/<club>')
@@ -96,7 +108,11 @@ def purchasePlaces():
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
 
-# TODO: Add route for points display
+@app.route('/pointsDisplay')
+def pointsDisplay():
+    # Sort clubs by points in descending order
+    sorted_clubs = sorted(clubs, key=lambda c: int(c['points']), reverse=True)
+    return render_template('points.html', clubs=sorted_clubs)
 
 
 @app.route('/logout')
